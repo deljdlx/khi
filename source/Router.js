@@ -2,13 +2,18 @@ Khi.Router=function(application)
 {
 	this.application=application;
 	this.routeCheckInterval=100;
+
+	this.rules={};
+
+	this.requestParameters={};
+	this.anchorParameters={};
 }
 
 
 
 Khi.Router.prototype.run=function() {
 
-	this.check(this);
+	this.check();
 
 	/*
 	this.routeInterval=setInterval(
@@ -21,15 +26,36 @@ Khi.Router.prototype.run=function() {
 
 
 
+Khi.Router.prototype.getRequest=function() {
+	this.requestParameters=this.getRequestParameters(document.location.toString())
+	this.anchorParameters=this.getAnchorParameters(document.location.toString());
+
+	return  {
+		url: document.location.toString(),
+		requestParameters : this.requestParameters,
+		anchorParameters: this.anchorParameters
+	}
+}
+
+Khi.Router.prototype.addRule=function (name, validator, callback) {
+
+	var rule=new Khi.RouterRule(validator, callback);
+	this.rules[name]=rule;
+	return rule;
+}
+
+
+
+
+
+
 Khi.Router.prototype.check=function() {
 
 
-	var request=this.getParameters(document.location.toString())
-	console.debug(request);
 
 
-	var request=this.getClientParameters(document.location.toString());
-	console.debug(request);
+
+	console.debug(this);
 
 
 /*
@@ -52,75 +78,62 @@ Khi.Router.prototype.check=function() {
 	*/
 }
 
-Khi.Router.prototype.getClientParameters=function(buffer) {
 
-	var parametersBuffer=buffer.replace(/.*?#(.*)/g, '$1');
-	//var parametersBuffer=buffer.replace(/(.*?)#.*/g, '$1');
-	//var parametersBuffer=buffer;
+Khi.Router.prototype.getAnchorParameters=function(buffer) {
 
 
-	parametersBuffer=parametersBuffer.replace(/^&/, '');
-
-	var callParametersBuffer=parametersBuffer.replace(/(.*?)\?.*/, '$1');
-	var userParametersBuffer=parametersBuffer.replace(/.*?\?(.*)/, '$1');
-
-
-	var parametersBuffers=callParametersBuffer.split('&');
-	var parameters={};
-
-	for(var i=0; i<parametersBuffers.length; i++) {
-		var userParameters=parametersBuffers[i].split('=');
-		parameters[userParameters[0]]=userParameters[1];
-	}
-
-	var parametersBuffers=userParametersBuffer.split('&');
 	var customParameters={};
 
-	for(var i=0; i<parametersBuffers.length; i++) {
-		var userParameters=parametersBuffers[i].split('=');
-		customParameters[userParameters[0]]=userParameters[1];
+	if(!buffer.match(/#/)) {
+		return customParameters;
 	}
 
-	return {
-		parameters: customParameters
-	};
+
+	var anchorString=buffer.replace(/.*?#(.*)/g, '$1');
+	anchorString=anchorString.replace(/\?/g, '&');
+	anchorString=anchorString.replace(/^&/, '');
+	var parameterStrings=anchorString.split('&');
+
+	if(parameterStrings.length) {
+		for(var i=0; i<parameterStrings.length; i++) {
+			var parametersData=parameterStrings[i].split('=');
+			var parameterName=parametersData[0];
+			var value=parametersData[1];
+			customParameters[parameterName]=value;
+		}
+	}
+	return customParameters;
 }
 
 
-Khi.Router.prototype.getParameters=function(buffer) {
-
-	//var parametersBuffer=buffer.replace(/.*?#(.*)/g, '$1');
 
 
-	var parametersBuffer=buffer.replace(/(.*?)#.*/g, '$1');
-
-	//var parametersBuffer=buffer;
 
 
-	parametersBuffer=parametersBuffer.replace(/^&/, '');
 
-	var callParametersBuffer=parametersBuffer.replace(/(.*?)\?.*/, '$1');
-	var userParametersBuffer=parametersBuffer.replace(/.*?\?(.*)/, '$1');
+Khi.Router.prototype.getRequestParameters=function(buffer) {
 
 
-	var parametersBuffers=callParametersBuffer.split('&');
-	var parameters={};
-
-	for(var i=0; i<parametersBuffers.length; i++) {
-		var userParameters=parametersBuffers[i].split('=');
-		parameters[userParameters[0]]=userParameters[1];
-	}
-
-	var parametersBuffers=userParametersBuffer.split('&');
 	var customParameters={};
 
-	for(var i=0; i<parametersBuffers.length; i++) {
-		var userParameters=parametersBuffers[i].split('=');
-		customParameters[userParameters[0]]=userParameters[1];
-	}
+	var url=buffer.replace(/(#.*)/g, '');
 
-	return {
-		parameters: customParameters
-	};
+	if(url.match(/\?/)) {
+
+
+		var queryString=url.replace(/.*?\?(.*)/, '$1');
+
+		var parameterStrings=queryString.split('&');
+
+		if(parameterStrings.length) {
+			for(var i=0; i<parameterStrings.length; i++) {
+				var parametersData=parameterStrings[i].split('=');
+				var parameterName=parametersData[0];
+				var value=parametersData[1];
+				customParameters[parameterName]=value;
+			}
+		}
+	}
+	return  customParameters;
 }
 
