@@ -6,8 +6,10 @@
 
     <script src="../bootstrap.js"></script>
     <script src="../source/Application.js"></script>
-    <script src="../source/Router.js"></script>
-    <script src="../source/RouterRule.js"></script>
+    <script src="../source/Routing/Router.js"></script>
+    <script src="../source/Routing/Route.js"></script>
+    <script src="../source/Routing/Request.js"></script>
+
     <script src="../source/ModuleLoader.js"></script>
 
 
@@ -30,21 +32,19 @@
 
 
 <script>
-    var router=new Khi.Router();
 
-    var rule=router.addRule('test', function(requestObject) {
+
+    var router=new Khi.Routing.Router();
+
+    var route=router.addRoute('test', function(requestObject) {
         return true;
     }, function(requestObject) {
         console.debug('hello world');
         console.debug(requestObject);
     });
 
-    console.debug(rule);
-
-
-    rule.execute(router.getRequest());
-
-    //router.run();
+    route.execute(router.getRequest());
+    //router.run(true);
 
 </script>
 
